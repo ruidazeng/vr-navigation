@@ -9,6 +9,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+DATA_DIR = os.path.join(PROJECT_ROOT, 'Parsed Data')
+
 
 def find_vector(subdirect, filename):
     """Create a feature vector from decimated X and Z positions."""
@@ -27,24 +32,18 @@ def find_vector(subdirect, filename):
     return vec
 
 
-rootdir = os.getcwd()
 arr = []
 row_dict = []  # Store filenames for cluster membership
-SUBDIRECT = None
 
 # Process all CSV files
-for subdir, dirs, files in os.walk(rootdir):
-    for file in files:
-        if '.csv' in file:
-            if not SUBDIRECT:
-                SUBDIRECT = subdir
-            
-            tmp = find_vector(subdir, file)
-            if not tmp:
-                print('Invalid file (for this decimation strategy):', file)
-                continue
-            arr.append(tmp)
-            row_dict.append(file)
+for file in os.listdir(DATA_DIR):
+    if file.endswith('.csv'):
+        tmp = find_vector(DATA_DIR, file)
+        if not tmp:
+            print('Invalid file (for this decimation strategy):', file)
+            continue
+        arr.append(tmp)
+        row_dict.append(file)
 
 X = np.array(arr)
 
@@ -73,7 +72,7 @@ for item in sorted(clusters):
 for item in sorted(clusters):
     print("Cluster", item)
     for filename in clusters[item]:
-        data = pd.read_csv(os.path.join(SUBDIRECT, filename))
+        data = pd.read_csv(os.path.join(DATA_DIR, filename))
         X = data['posX'].values[0:30000:100]
         Y = data['posZ'].values[0:30000:100]
         plt.scatter(X, Y)

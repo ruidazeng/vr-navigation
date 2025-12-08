@@ -5,8 +5,11 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Configuration
-DATA_DIR = 'Parsed Data'
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+DATA_DIR = os.path.join(PROJECT_ROOT, 'Parsed Data')
+
 filename = 'AAAA.csv'
 
 # Read CSV file

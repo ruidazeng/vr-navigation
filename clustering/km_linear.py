@@ -7,8 +7,11 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 
-# Configuration
-DATA_DIR = 'Parsed Data'
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+DATA_DIR = os.path.join(PROJECT_ROOT, 'Parsed Data')
+
 filename = 'AAAA.csv'
 k = 8  # Number of clusters
 

@@ -9,6 +9,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+DATA_DIR = os.path.join(PROJECT_ROOT, 'Parsed Data')
+
 
 def calculate_distance(x1, y1, x2, y2):
     """Calculate Euclidean distance between two points."""
@@ -49,17 +54,15 @@ def find_quadruple(subdirect, filename):
     return quadruple
 
 
-rootdir = os.getcwd()
 arr = []
 row_dict = []  # Store filenames for cluster membership
 
 # Process all CSV files
-for subdir, dirs, files in os.walk(rootdir):
-    for file in files:
-        if '.csv' in file:
-            qua = find_quadruple(subdir, file)
-            arr.append(qua)
-            row_dict.append(file)
+for file in os.listdir(DATA_DIR):
+    if file.endswith('.csv'):
+        qua = find_quadruple(DATA_DIR, file)
+        arr.append(qua)
+        row_dict.append(file)
 
 X = np.array(arr)
 

@@ -9,99 +9,132 @@ It mainly consists of 143 parsed `.csv` files in the "Parsed Data" sub-folder an
 
 ***Python modules required to be installed: numpy, pandas, sklearn, matplotlib and their dependencies.***
 
+### Project Structure
+
+```
+vr-navigation/
+├── clustering/              # K-means clustering scripts
+│   ├── km_linear.py
+│   ├── km_quadruple.py
+│   ├── km_vector.py
+│   ├── km_vector_more.py
+│   ├── km_color.py
+│   ├── km_color_more.py
+│   ├── km_3d.py
+│   ├── km_avg.py
+│   └── failed_km.py
+├── visualization/           # Visualization scripts
+│   ├── visual.py
+│   ├── turtle_viz.py
+│   ├── color_single.py
+│   └── color_double.py
+├── preprocessing/           # Data parsing scripts (legacy)
+│   ├── makecsv.py
+│   ├── matplotfullalgo.py
+│   ├── subdir.py
+│   ├── subdir_multiple.py
+│   └── subdir_unique.py
+├── Parsed Data/             # 143 parsed CSV files
+└── Resources/               # Images and documentation
+```
+
 ### Parsed Data
 The attributes of the parsed `.csv` files are `date/time`, `seconds since started`, `posX`, `posY`, `posZ`, `rotX`, `rotY`, `rotZ`, respectively. The raw tab-separated `.txt` files before parsing contained more unimportant attributes but was sliced.
 
-#### `1color.py`
-Visual representation of one singular `.csv` file using matplotlib module based on the temporal attributes, with red indicates early and blue indicates late.
+---
 
-This script will not compile in its current form, due to it being legacy code.
+## Visualization Scripts
+
+#### `visualization/color_single.py`
+Visual representation of one singular `.csv` file using matplotlib module based on the temporal attributes, with red indicates early and blue indicates late.
 
 ![one color](/Resources/1color.png)
 
-#### `2color.py`
+#### `visualization/color_double.py`
 Visual representation of two `.csv` files using matplotlib module based on the temporal attributes, with red indicates early and blue indicates late.
-
-This script will not compile in its current form, due to it being legacy code.
 
 ![two color](/Resources/2color.png)
 
-#### `failed_km.py`
-Failed attempt at k-means clustering all (posX, posZ) in tuple forms in a numpy array, from 5 distinct pandas dataframes which were imported from the first 5 parsed data alphabetically. Returned `ValueError: Found array with dim 3. Estimator expected <= 2`.
+#### `visualization/visual.py`
+Visual representation using matplotlib module.
 
-#### `km_3d.py`
+![visual plot](/Resources/visual.png)
+
+#### `visualization/turtle_viz.py`
+Visual representation using turtle module (live animation).
+
+![turtle plot](/Resources/turtle.png)
+
+---
+
+## Clustering Scripts
+
+#### `clustering/failed_km.py`
+Failed attempt at k-means clustering all (posX, posZ) in tuple forms in a numpy array, from 5 distinct pandas dataframes which were imported from the first 5 parsed data alphabetically. Returned `ValueError: Found array with dim 3. Estimator expected <= 2`. Kept for educational purposes.
+
+#### `clustering/km_3d.py`
 Temporal attribute (time) is added as the Z-axis for 3D visual representation of the clusters.
 
 ![k-means 3d](/Resources/km_3d.png)
 
-#### `km_avg.py`
-A 3D representation, with time as the Z-axis, of the average (mean) position of the clusters. Returned `IndexError: list index out of range` for certain clusters (yet to be debugged).
+#### `clustering/km_avg.py`
+A 3D representation, with time as the Z-axis, of the average (mean) position of the clusters.
 
 ![k-means average](/Resources/km_avg.png)
 
-#### `km_linear.py`
+#### `clustering/km_linear.py`
 Successful k-means clustering on (posX, posZ) tuples on a subject dataframe, imported from a singular parsed data file. In this example, I set the number of clusters to 8 for `AAAA.csv`, but they can be easily modified.
 
 ![k-means linear plot](/Resources/km_linear.png)
 
-#### `km_quadruple.py`
+#### `clustering/km_quadruple.py`
 Traverse through all `.csv` files in the Parsed Data folder.
 Successful k-means clustering on (posX, posZ) tuples on each subject dataframe from all parsed data file. The quadruples are calculated from time spent around the vicinity of 4 decision points (intersections) in the maze.
 
 ![k-means quadruple plot](/Resources/km_quadruple.png)
 
-#### `km_vector.py`
+#### `clustering/km_vector.py`
 Successful k-means clustering on decimated posY stacked on top of posX, forming a vector for each of the subject dataframe from all parsed data files. Since the codes require uniformity of vector size, we had to slice out 2 data files because of the particular decimation.
 
 ![k-means vector plot](/Resources/km_vector.png)
 
-#### `km_vector_more.py`
+#### `clustering/km_vector_more.py`
 Successful k-means clustering on "less" decimated posY stacked on top of posX, forming a vector for each of the subject dataframe from all parsed data files. Since the codes require uniformity of vector size, we had to slice out 39 data files because of the particular decimation.
 
 ![k-means vector more plot](/Resources/km_vector_more.png)
 
-#### `km_color.py`
+#### `clustering/km_color.py`
 Successful k-means clustering on decimated posY stacked on top of posX, forming a vector for each of the subject dataframe from all parsed data files. Since the codes require uniformity of vector size, we had to slice out 2 data files because of the particular decimation. The graphs are coded with the temporal attributes, with red indicates early and blue indicates late.
 
 ![k-means color plot](/Resources/km_color.png)
 
-#### `km_color_more.py`
+#### `clustering/km_color_more.py`
 Successful k-means clustering on "less" decimated posY stacked on top of posX, forming a vector for each of the subject dataframe from all parsed data files. Since the codes require uniformity of vector size, we had to slice out 39 data files because of the particular decimation. The graphs are coded with the temporal attributes, with red indicates early and blue indicates late.
 
 ![k-means color more plot](/Resources/km_color_more.png)
 
-#### `makecsv.py`
+---
+
+## Preprocessing Scripts (Legacy)
+
+These scripts require the original raw experimental data files which are not included in this repository. They will display helpful error messages if run without the required data.
+
+#### `preprocessing/makecsv.py`
 This source code generates a `.csv` file from the original, tab-separated, `.txt` file by applying my "find 10 min" slicing algorithm.
 
-#### `matplotlibfullalgo.py`
+#### `preprocessing/matplotfullalgo.py`
 Returns a visual representation using matplotlib module of a 10 minutes slot found by my "find 10 min" slicing algorithm. This visual is used to determine whether or not my algorithm has found the correct 10 minutes.
 
-This script will not compile in its current form, due to it being legacy code.
+#### `preprocessing/subdir.py`
+This is the code I applied on the original, raw, data in order to find the 10 minutes of useful data. However, since this piece of "find 10 min" algorithm does not work on all files, I wrote this script to iterate through every original raw data file to determine the efficiency of my algorithms.
 
-#### `subdir.py`
-This is the code I applied on the original, raw, data in order to find the 10 minutes of useful data. However, since this piece of "find 10 min" algorithm his code does not work on all, I wrote this script to iterate through every original raw data file to determine the efficiency of my algorithms.
-
-This script will not compile in its current form, due to it being legacy code.
-
-#### `subdir_multiple.py`
+#### `preprocessing/subdir_multiple.py`
 This is a modification on the `subdir.py`, such that it will tell me which are the files that my "find 10 min" slicing algorithm found ***two or more*** candidates.
 
-This script will not compile in its current form, due to it being legacy code.
-
-#### `subdir_unique.py`
+#### `preprocessing/subdir_unique.py`
 This is a modification on the `subdir.py`, such that it will tell me which are the files that my "find 10 min" slicing algorithm found ***only one*** candidate.
 
-This script will not compile in its current form, due to it being legacy code.
-
-#### `visual.py`
-Visual representation using matplotlib module.
-
-![visual plot](/Resources/visual.png)
-
-#### `turtle.py`
-Visual representation using turtle module (live animation).
-
-![turtle plot](/Resources/turtle.png)
+---
 
 ### Appendix
 I prepared a poster presentation for 2019 Vanderbilt School of Engineering Summer Undergraduate Research Experience Program as 2019 Summer Research Fellow.
@@ -109,7 +142,7 @@ I prepared a poster presentation for 2019 Vanderbilt School of Engineering Summe
 ![poster presentation](/Resources/poster.jpg)
 
  
-The following tables contain the manuever I had to apply based on the graphic representation given by applying `matplotlibfullalgo.py` to each individual raw data, which is significantly larger, containing more unuseful data.
+The following tables contain the manuever I had to apply based on the graphic representation given by applying `preprocessing/matplotfullalgo.py` to each individual raw data, which is significantly larger, containing more unuseful data.
 
 **`Y`** indicates that the data was parsed out perfectly, **`N`** indicates that I hardcoded a shift of 10 minutes because the visual gave us a visual representation of the training maze which procedes the learning maze, and **`X`** indicates throwing out the data completely because the visual made no sense even after hardcoded tinkering.
 
