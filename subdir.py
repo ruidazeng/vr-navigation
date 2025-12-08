@@ -1,32 +1,54 @@
+"""
+Iterate through raw data files to test the "find 10 min" algorithm.
+Reports which files the algorithm successfully finds candidates for.
+
+NOTE: This is a legacy script that requires external raw data files.
+The data directory 'C:/Navigation Data/Labeled' is not included in this repository.
+Update ROOTDIR to point to your local raw data directory.
+"""
 import os
-rootdir = 'C:/Navigation Data/Labeled'
+import sys
+
+# Configuration - update this path to point to your raw data directory
+ROOTDIR = 'C:/Navigation Data/Labeled'
+
+# Check if the required data directory exists
+if not os.path.exists(ROOTDIR):
+    print(f"ERROR: Required data directory '{ROOTDIR}' not found.")
+    print("This script requires the original raw experimental data files.")
+    print("Please update ROOTDIR at the top of this script to point to your data directory.")
+    sys.exit(1)
+
 works = 0
 no_works = 0
 
-for subdir, dirs, files in os.walk(rootdir):
+for subdir, dirs, files in os.walk(ROOTDIR):
     for infile in files:
         if "CW4Test_Data" in infile:
             target_file = infile
         else:
             continue
-
+        
         prev = 0
         started = False
         index = 0
         printed = False
-        # search for the magic 10 minutes
+        
+        # Search for the magic 10 minutes
         with open(os.path.join(subdir, target_file)) as openfileobject:
             for line in openfileobject:
-                # skip blank lines
-                if line == '\n': continue
+                # Skip blank lines
+                if line == '\n':
+                    continue
                 datetime = line.split('\t')[0]
                 num = float(line.split('\t')[1])
-                # print(num)
+                
                 if index == 0:
                     prev = num
                     index += 1
                     continue
-                    # this code also ensures only around-10 minutes intervals are printed
+                
+                # This code ensures only around-10 minutes intervals are found
                 if abs(num - prev) > 1.00:
                     if not started:
                         tracker = num
@@ -40,15 +62,20 @@ for subdir, dirs, files in os.walk(rootdir):
                     started = not started
                 prev = num
                 index += 1
-
-
-        # additional tracker
+        
+        # Report results
+        # Handle both Windows and Unix path separators
+        try:
+            subject_id = subdir.split('\\')[-1] if '\\' in subdir else subdir.split('/')[-1]
+        except IndexError:
+            subject_id = subdir
+        
         if printed:
             works += 1
-            print('works:', subdir.split('\\')[1])
+            print('works:', subject_id)
         else:
             no_works += 1
-            print('doesnt works:', subdir.split('\\')[1])
+            print("doesn't work:", subject_id)
 
-print('we successfully found candidate(s) for', works, 'files')
-print('we failed to find any candidate for', no_works, 'files')
+print(f'\nwe successfully found candidate(s) for {works} files')
+print(f'we failed to find any candidate for {no_works} files')

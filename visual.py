@@ -1,18 +1,22 @@
-# code 2
+"""
+Visual representation using matplotlib module.
+"""
+import os
 import pandas as pd
-
-
-filename = 'AAAA.csv'
-# read in the tab-separated values
-df = pd.read_csv(filename, sep=',', lineterminator='\n')
-
-print(df.shape)
-
-print('finish loading into pandas')
-
-
 import matplotlib.pyplot as plt
 
-# a scatter plot comparing num_children and num_pets
-df.plot(kind='scatter',x='posX',y='posZ',color='olive')
+# Configuration
+DATA_DIR = 'Parsed Data'
+filename = 'AAAA.csv'
+
+# Read CSV file
+filepath = os.path.join(DATA_DIR, filename)
+df = pd.read_csv(filepath, sep=',', lineterminator='\n')
+
+print(df.shape)
+print('finish loading into pandas')
+
+# Plot scatter
+df.plot(kind='scatter', x='posX', y='posZ', color='olive')
+plt.title(f'Navigation Path: {filename}')
 plt.show()

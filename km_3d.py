@@ -1,125 +1,95 @@
+"""
+3D visualization of k-means clusters with time as Z-axis.
+Red indicates early positions, blue indicates late positions.
+"""
 import os
-import math
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 
+
 def find_vector(subdirect, filename):
-    vec = list()
+    """Create a feature vector from decimated X and Z positions."""
+    vec = []
     data = pd.read_csv(os.path.join(subdirect, filename))
-    # print(subdirect)
     X = data['posX'].values[0:30000:1000]
     Y = data['posZ'].values[0:30000:1000]
+    
     if len(X) != 30 or len(Y) != 30:
-        # false/terminate
-        return vec
-
-    # plt.scatter(X, Y)
-    # plt.show()
-
+        return vec  # Return empty list if data doesn't match expected size
+    
     for x in X:
         vec.append(x)
     for y in Y:
-        # print(y)
         vec.append(y)
-    # print(vec)
-    # quit()
     return vec
 
 
 rootdir = os.getcwd()
-arr = list()
-
-# dictionary
-row_dict = list()
-
-# hardcord
+arr = []
+row_dict = []  # Store filenames for cluster membership
 SUBDIRECT = None
 
-count = 0
-# actual processing files
+# Process all CSV files
 for subdir, dirs, files in os.walk(rootdir):
     for file in files:
         if '.csv' in file:
-            #quit()
-
-            # ONE TIME THING
             if not SUBDIRECT:
                 SUBDIRECT = subdir
-
+            
             tmp = find_vector(subdir, file)
             if not tmp:
-                print('Invalid file (for this decimation strategy): ', file)
+                print('Invalid file (for this decimation strategy):', file)
                 continue
             arr.append(tmp)
             row_dict.append(file)
 
-# print('arr:', arr)
-# print('=======================')
 X = np.array(arr)
-# print('X:', X)
-# print(np.unique(list(map(len, X))))
-# number of clusters*****************
+
+# Number of clusters
 k = 8
 
-# Machine Learning
-kmeans = KMeans(n_clusters = k)
-# important code:
+# K-Means clustering
+kmeans = KMeans(n_clusters=k, n_init='auto')
 kmeans.fit(X)
 y_kmeans = kmeans.predict(X)
 print(y_kmeans)
 
-# centers = kmeans.cluster_centers_
-# plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5);
-
-# in row_dict we store actual meanings of rows, in my case it's russian words
+# Build clusters dictionary
 clusters = {}
-n = 0
-for item in y_kmeans:
+for n, item in enumerate(y_kmeans):
     if item in clusters:
         clusters[item].append(row_dict[n])
     else:
         clusters[item] = [row_dict[n]]
-    n +=1
-
-# for item in clusters:
-#     print("Cluster ", item)
-#     for i in clusters[item]:
-#         print(i)
 
 for item in sorted(clusters):
-    print("Cluster ", item)
+    print("Cluster", item)
     print(clusters[item])
 
-# Plot points by clusters
-from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
-
-# color: red is the beginning
-time = list(range(300, 0, -1))
-
-# Reorganize the printings
+# Plot 3D visualization by clusters
 for item in sorted(clusters):
-    print("Cluster ", item)
-
-    # create the plot windows
+    print("Cluster", item)
+    
+    # Create the plot window
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-
-    for i in clusters[item]:
-        data = pd.read_csv(os.path.join(SUBDIRECT, i))
-        X = data['posX'].values[::100]
-        Y = data['posZ'].values[::100]
-
-        t_size = len(X)
-        # colorGrad customized
-        colorGrad = []
-        for i in range(0, t_size):
-            colorGrad.append([i/t_size, 0, 1 - i/t_size])
-
-        time = list(range(0, t_size))
-
-        ax.scatter(X, Y, time, c=colorGrad)
-        # plt.scatter(X, Y, time, c=c, marker=m)
+    
+    for filename in clusters[item]:
+        data = pd.read_csv(os.path.join(SUBDIRECT, filename))
+        X_pos = data['posX'].values[::100]
+        Y_pos = data['posZ'].values[::100]
+        
+        t_size = len(X_pos)
+        # Color gradient (red=early, blue=late)
+        colorGrad = [[j / t_size, 0, 1 - j / t_size] for j in range(t_size)]
+        time = list(range(t_size))
+        
+        ax.scatter(X_pos, Y_pos, time, c=colorGrad)
+    
+    ax.set_xlabel('posX')
+    ax.set_ylabel('posZ')
+    ax.set_zlabel('Time')
+    plt.title(f'Cluster {item} - 3D View')
     plt.show()

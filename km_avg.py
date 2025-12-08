@@ -1,134 +1,118 @@
+"""
+3D representation of the average (mean) position of clusters over time.
+Time is the Z-axis. Shows averaged paths for each cluster.
+"""
 import os
-import math
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 
+
 def find_vector(subdirect, filename):
-    vec = list()
+    """Create a feature vector from decimated X and Z positions."""
+    vec = []
     data = pd.read_csv(os.path.join(subdirect, filename))
-    # print(subdirect)
     X = data['posX'].values[0:30000:1000]
     Y = data['posZ'].values[0:30000:1000]
+    
     if len(X) != 30 or len(Y) != 30:
-        # false/terminate
-        return vec
-
-    # plt.scatter(X, Y)
-    # plt.show()
-
+        return vec  # Return empty list if data doesn't match expected size
+    
     for x in X:
         vec.append(x)
     for y in Y:
-        # print(y)
         vec.append(y)
-    # print(vec)
-    # quit()
     return vec
 
 
 rootdir = os.getcwd()
-arr = list()
-
-# dictionary
-row_dict = list()
-
-# hardcord
+arr = []
+row_dict = []  # Store filenames for cluster membership
 SUBDIRECT = None
 
-count = 0
-# actual processing files
+# Process all CSV files
 for subdir, dirs, files in os.walk(rootdir):
     for file in files:
         if '.csv' in file:
-            #quit()
-
-            # ONE TIME THING
             if not SUBDIRECT:
                 SUBDIRECT = subdir
-
+            
             tmp = find_vector(subdir, file)
             if not tmp:
-                print('Invalid file (for this decimation strategy): ', file)
+                print('Invalid file (for this decimation strategy):', file)
                 continue
             arr.append(tmp)
             row_dict.append(file)
 
-# print('arr:', arr)
-# print('=======================')
 X = np.array(arr)
-# print('X:', X)
-# print(np.unique(list(map(len, X))))
-# number of clusters*****************
+
+# Number of clusters
 k = 8
 
-# Machine Learning
-kmeans = KMeans(n_clusters = k)
-# important code:
+# K-Means clustering
+kmeans = KMeans(n_clusters=k, n_init='auto')
 kmeans.fit(X)
 y_kmeans = kmeans.predict(X)
 print(y_kmeans)
 
-# centers = kmeans.cluster_centers_
-# plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5);
-
-# in row_dict we store actual meanings of rows, in my case it's russian words
+# Build clusters dictionary
 clusters = {}
-n = 0
-for item in y_kmeans:
+for n, item in enumerate(y_kmeans):
     if item in clusters:
         clusters[item].append(row_dict[n])
     else:
         clusters[item] = [row_dict[n]]
-    n +=1
 
 for item in sorted(clusters):
-    print("Cluster ", item)
+    print("Cluster", item)
     print(clusters[item])
 
-# Plot points by clusters
-from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
+# Decimation factor for visualization
+DECIMATE = 10
+NUM_POINTS = 30000 // DECIMATE  # Expected number of decimated points
 
-# color: red is the beginning
-time = list(range(3000, 0, -1))
-
-# Reorganize the printings
+# Plot 3D averaged paths by clusters
 for item in sorted(clusters):
-    print("Cluster ", item)
-
-    # create the plot windows
+    print("Cluster", item)
+    
+    # Create the plot window
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    X = [0 for _ in range(3000)]
-    Y = [0 for _ in range(3000)]
-
-    for i in clusters[item]:
-        data = pd.read_csv(os.path.join(SUBDIRECT, i))
-        small_x = data['posX'].values[::10]
-        small_y = data['posZ'].values[::10]
-
-        # O(N^2)
-        index = 0
-        for x, y in zip(small_x, small_y):
-            X[index] += x
-            Y[index] += y
-            index += 1
-
-        for i in range(len(small_x)):
-            X[i] /= index
-            Y[i] /= index
-
-
-
-
-    t_size = len(X)
-    # colorGrad customized
-    colorGrad = []
-    for i in range(0, t_size):
-        colorGrad.append([i/t_size, 0, 1 - i/t_size])
-    time = list(range(0, t_size))
-    ax.scatter(X, Y, time, c=colorGrad)
-    # plt.scatter(X, Y, time, c=c, marker=m)
+    
+    # Accumulate positions for averaging
+    X_sum = np.zeros(NUM_POINTS)
+    Y_sum = np.zeros(NUM_POINTS)
+    file_count = 0
+    
+    for filename in clusters[item]:
+        data = pd.read_csv(os.path.join(SUBDIRECT, filename))
+        small_x = data['posX'].values[::DECIMATE]
+        small_y = data['posZ'].values[::DECIMATE]
+        
+        # Only include files with expected number of points
+        if len(small_x) >= NUM_POINTS and len(small_y) >= NUM_POINTS:
+            X_sum[:NUM_POINTS] += small_x[:NUM_POINTS]
+            Y_sum[:NUM_POINTS] += small_y[:NUM_POINTS]
+            file_count += 1
+    
+    # Calculate averages (avoid division by zero)
+    if file_count > 0:
+        X_avg = X_sum / file_count
+        Y_avg = Y_sum / file_count
+    else:
+        print(f"  Warning: No valid files in cluster {item}")
+        plt.close(fig)
+        continue
+    
+    t_size = len(X_avg)
+    # Color gradient (red=early, blue=late)
+    colorGrad = [[j / t_size, 0, 1 - j / t_size] for j in range(t_size)]
+    time = list(range(t_size))
+    
+    ax.scatter(X_avg, Y_avg, time, c=colorGrad)
+    ax.set_xlabel('posX (avg)')
+    ax.set_ylabel('posZ (avg)')
+    ax.set_zlabel('Time')
+    plt.title(f'Cluster {item} - Average Path ({file_count} subjects)')
     plt.show()
